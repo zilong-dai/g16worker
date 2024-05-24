@@ -162,22 +162,22 @@ func (w *Groth16Worker) GenerateProof(common_circuit_data string, proof_with_pub
 		panic(err)
 	}
 
-	w.r1cs, err = frontend.Compile(CURVE_ID.ScalarField(), r1cs.NewBuilder, &circuit)
-	if err != nil {
-		panic(err)
-	}
-
 	if !CheckKeysExist(KEY_STORE_PATH) {
-
 		fmt.Println("setup keys")
+
+		w.r1cs, err = frontend.Compile(CURVE_ID.ScalarField(), r1cs.NewBuilder, &circuit)
+		if err != nil {
+			panic(err)
+		}
+
 		w.PK, w.VK, err = groth16.Setup(w.r1cs)
 		if err != nil {
 			panic(err)
 		}
 
-		// if err := WriteCircuit(w.r1cs, KEY_STORE_PATH+CIRCUIT_PATH); err != nil {
-		// 	panic(err)
-		// }
+		if err := WriteCircuit(w.r1cs, KEY_STORE_PATH+CIRCUIT_PATH); err != nil {
+			panic(err)
+		}
 		if err := WriteVerifyingKey(w.VK, KEY_STORE_PATH+VK_PATH); err != nil {
 			panic(err)
 		}
@@ -198,10 +198,10 @@ func (w *Groth16Worker) GenerateProof(common_circuit_data string, proof_with_pub
 			panic(err)
 		}
 
-		// w.r1cs, err = ReadCircuit(ecc.BLS12_381, KEY_STORE_PATH+CIRCUIT_PATH)
-		// if err != nil {
-		// 	panic(err)
-		// }
+		w.r1cs, err = ReadCircuit(ecc.BLS12_381, KEY_STORE_PATH+CIRCUIT_PATH)
+		if err != nil {
+			panic(err)
+		}
 		fmt.Println("reading keys end")
 	}
 
