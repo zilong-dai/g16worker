@@ -1,4 +1,4 @@
-module g16worker
+module github.com/zilong-dai/g16worker
 
 go 1.22.3
 
