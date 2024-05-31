@@ -25,14 +25,14 @@ func main() {
 	}
 
 	p := worker.G16ProofWithPublicInputs{
-		Proof: g16Worker.Proof,
+		Proof:        g16Worker.Proof,
 		PublicInputs: g16Worker.PublicInputs,
 	}
-	 proofBytes, err:= json.Marshal(p); 
-	 if err!= nil {
+	proofBytes, err := json.Marshal(p)
+	if err != nil {
 		panic(err)
 	}
 	if err := g16Worker.VerifyProof(string(proofBytes), serialize.GNARK); err != nil {
 		panic(err)
-	}	
+	}
 }

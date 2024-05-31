@@ -11,7 +11,7 @@ import (
 type G16Worker struct {
 	PK           groth16.ProvingKey
 	VK           groth16.VerifyingKey
-	CCS         constraint.ConstraintSystem
+	CCS          constraint.ConstraintSystem
 	Proof        groth16.Proof
 	PublicInputs witness.Witness
 	// IsSetup bool
@@ -36,13 +36,12 @@ func NewG16Worker() (*G16Worker, error) {
 	w := G16Worker{
 		PK:           pk,
 		VK:           vk,
-		CCS:         r1cs,
+		CCS:          r1cs,
 		Proof:        proof,
 		PublicInputs: witness,
 	}
 	return &w, nil
 }
-
 
 type G16ProofWithPublicInputs struct {
 	Proof        groth16.Proof

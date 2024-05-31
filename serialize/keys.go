@@ -11,7 +11,6 @@ import (
 	"github.com/zilong-dai/gnark/constraint"
 )
 
-
 func CheckKeyFilesIsExist(path string) bool {
 	files := []string{
 		CIRCUIT_PATH,
@@ -139,8 +138,6 @@ func WriteCircuit(r1cs constraint.ConstraintSystem, path string) error {
 	return nil
 }
 
-
-
 func ReadPlonky2Data(path string) ([]string, error) {
 	files := []string{
 		COMMON_CIRCUIT_DATA_FILE,
@@ -155,7 +152,7 @@ func ReadPlonky2Data(path string) ([]string, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to open %s: %w", file, err)
 		}
-	
+
 		defer jsonFile.Close()
 		rawBytes, _ := io.ReadAll(jsonFile)
 		res[i] = string(rawBytes)

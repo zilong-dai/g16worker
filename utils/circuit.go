@@ -52,7 +52,6 @@ func (c *CRVerifierCircuit) Define(api frontend.API) error {
 	return nil
 }
 
-
 func ReadCRVerifierCircuit(common_circuit_data string, proof_with_public_inputs string, verifier_only_circuit_data string) (*CRVerifierCircuit, error) {
 
 	commonCircuitData, err := ReadCommonCircuitDataRaw(common_circuit_data)

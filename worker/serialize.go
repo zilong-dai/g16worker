@@ -237,28 +237,28 @@ func FromG16CompressProof(g16CProof *serialize.G16CompressProof) (*G16ProofWithP
 
 	if Ar, err := serialize.DeSerializeG1Compress(g16CProof.PiA); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal Ar: %w", err)
-	}else{
+	} else {
 		proof.Ar = *Ar
 	}
-	
+
 	if Bs, err := serialize.DeSerializeG2Compress(g16CProof.PiB); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal Bs: %w", err)
-	}else{
+	} else {
 		proof.Bs = *Bs
 	}
 
 	if Krs, err := serialize.DeSerializeG1Compress(g16CProof.PiC); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal Krs: %w", err)
-	}else{
+	} else {
 		proof.Krs = *Krs
 	}
 
 	if pi, err := serialize.DeSerializeWitness(g16CProof.PublicInputs); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal PublicInputs: %w", err)
-	}else{
+	} else {
 		p.PublicInputs = pi
 	}
-	
+
 	return p, nil
 }
 
@@ -285,25 +285,25 @@ func FromG16CompressVK(g16CVK *serialize.G16CompressVK) (groth16.VerifyingKey, e
 
 	if AlphaG1, err := serialize.DeSerializeG1Compress(g16CVK.AlphaG1); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal Alpha: %w", err)
-	}else{
+	} else {
 		vk.G1.Alpha = *AlphaG1
 	}
 
 	if BetaG2, err := serialize.DeSerializeG2Compress(g16CVK.BetaG2); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal Beta: %w", err)
-	}else{
+	} else {
 		vk.G2.Beta = *BetaG2
 	}
 
-	if GammaG2, err := serialize.DeSerializeG2Compress(g16CVK.GammaG2); err != nil {	
+	if GammaG2, err := serialize.DeSerializeG2Compress(g16CVK.GammaG2); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal Gamma: %w", err)
-	}else{
+	} else {
 		vk.G2.Gamma = *GammaG2
 	}
 
 	if DeltaG2, err := serialize.DeSerializeG2Compress(g16CVK.DeltaG2); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal Delta: %w", err)
-	}else{
+	} else {
 		vk.G2.Delta = *DeltaG2
 	}
 
@@ -311,14 +311,121 @@ func FromG16CompressVK(g16CVK *serialize.G16CompressVK) (groth16.VerifyingKey, e
 	for i, kG1 := range g16CVK.G1K {
 		if g1, err := serialize.DeSerializeG1Compress(kG1); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal G1K[%d]: %w", i, err)
-		}else{
+		} else {
 			vk.G1.K[i] = *g1
 		}
-	}	
-	
+	}
+
 	if err := vk.Precompute(); err != nil {
 		return nil, fmt.Errorf("failed to precompute: %w", err)
 	}
-	
+
+	return VK, nil
+}
+
+func ToCityG16Proof(p *G16ProofWithPublicInputs) (*serialize.CityG16Proof, error) {
+	proof := p.Proof.(*bls12381.Proof)
+
+	PiBStr := serialize.SerializeMCLG2Compress(&proof.Bs)
+
+	return &serialize.CityG16Proof{
+		PiA:          serialize.SerializeMCLG1Compress(&proof.Ar),
+		PiBA0:        PiBStr[:len(PiBStr)/2],
+		PiBA1:        PiBStr[len(PiBStr)/2:],
+		PiC:          serialize.SerializeMCLG1Compress(&proof.Krs),
+		PublicInput0: serialize.SerializeWitness(p.PublicInputs)[0],
+		PublicInput1: serialize.SerializeWitness(p.PublicInputs)[1],
+	}, nil
+}
+
+func FromGCityG16Proof(g16CProof *serialize.CityG16Proof) (*G16ProofWithPublicInputs, error) {
+	p := NewG16ProofWithPublicInputs()
+	proof := p.Proof.(*bls12381.Proof)
+
+	if Ar, err := serialize.DeSerializeMCLG1Compress(g16CProof.PiA); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal Ar: %w", err)
+	} else {
+		proof.Ar = *Ar
+	}
+
+	if Bs, err := serialize.DeSerializeMCLG2Compress(g16CProof.PiBA0 + g16CProof.PiBA1); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal Bs: %w", err)
+	} else {
+		proof.Bs = *Bs
+	}
+
+	if Krs, err := serialize.DeSerializeMCLG1Compress(g16CProof.PiC); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal Krs: %w", err)
+	} else {
+		proof.Krs = *Krs
+	}
+
+	if pi, err := serialize.DeSerializeWitness([]string{g16CProof.PublicInput0, g16CProof.PublicInput1}); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal PublicInputs: %w", err)
+	} else {
+		p.PublicInputs = pi
+	}
+
+	return p, nil
+}
+
+func ToCityG16VK(Vk groth16.VerifyingKey) (*serialize.CityG16VK, error) {
+	vk := Vk.(*bls12381.VerifyingKey)
+
+	gamma_abc_g1_arr := make([]string, len(vk.G1.K))
+	for i, kG1 := range vk.G1.K {
+		gamma_abc_g1_arr[i] = serialize.SerializeMCLG1Compress(&kG1)
+	}
+
+	return &serialize.CityG16VK{
+		AlphaG1: serialize.SerializeMCLG1Compress(&vk.G1.Alpha),
+		BetaG2:  serialize.SerializeMCLG2Compress(&vk.G2.Beta),
+		GammaG2: serialize.SerializeMCLG2Compress(&vk.G2.Gamma),
+		DeltaG2: serialize.SerializeMCLG2Compress(&vk.G2.Delta),
+		G1K:     gamma_abc_g1_arr,
+	}, nil
+}
+
+func FromCityG16VK(g16CVK *serialize.CityG16VK) (groth16.VerifyingKey, error) {
+	VK := groth16.NewVerifyingKey(CURVE_ID)
+	vk := VK.(*bls12381.VerifyingKey)
+
+	if AlphaG1, err := serialize.DeSerializeMCLG1Compress(g16CVK.AlphaG1); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal Alpha: %w", err)
+	} else {
+		vk.G1.Alpha = *AlphaG1
+	}
+
+	if BetaG2, err := serialize.DeSerializeMCLG2Compress(g16CVK.BetaG2); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal Beta: %w", err)
+	} else {
+		vk.G2.Beta = *BetaG2
+	}
+
+	if GammaG2, err := serialize.DeSerializeMCLG2Compress(g16CVK.GammaG2); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal Gamma: %w", err)
+	} else {
+		vk.G2.Gamma = *GammaG2
+	}
+
+	if DeltaG2, err := serialize.DeSerializeMCLG2Compress(g16CVK.DeltaG2); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal Delta: %w", err)
+	} else {
+		vk.G2.Delta = *DeltaG2
+	}
+
+	vk.G1.K = make([]curve.G1Affine, len(g16CVK.G1K))
+	for i, kG1 := range g16CVK.G1K {
+		if g1, err := serialize.DeSerializeMCLG1Compress(kG1); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal G1K[%d]: %w", i, err)
+		} else {
+			vk.G1.K[i] = *g1
+		}
+	}
+
+	if err := vk.Precompute(); err != nil {
+		return nil, fmt.Errorf("failed to precompute: %w", err)
+	}
+
 	return VK, nil
 }
