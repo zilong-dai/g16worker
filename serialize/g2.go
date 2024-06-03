@@ -120,3 +120,24 @@ func DeSerializeMCLG2Compress(g2s string) (*curve.G2Affine, error) {
 
 	return g2, nil
 }
+
+func SerializeG22(g2 *curve.G2Affine) *ArkProofG2 {
+
+	g2Bytes := g2.Marshal()
+	return &ArkProofG2{
+		X: ArkProofE2{A0: hex.EncodeToString(g2Bytes[0:48]), A1: hex.EncodeToString(g2Bytes[48:96])},
+		Y: ArkProofE2{A0: hex.EncodeToString(g2Bytes[96:144]), A1: hex.EncodeToString(g2Bytes[144:192])},
+	}
+}
+
+func DeSerializeG22(g2s *ArkProofG2) (*curve.G2Affine, error) {
+	g2 := new(curve.G2Affine)
+	g2Bytes, err := hex.DecodeString(g2s.X.A0 + g2s.X.A1 + g2s.Y.A0 + g2s.Y.A1)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode hex: %w", err)
+	}
+	if err := g2.Unmarshal(g2Bytes); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal: %w", err)
+	}
+	return g2, nil
+}
