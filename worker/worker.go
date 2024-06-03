@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -15,6 +16,8 @@ import (
 	"github.com/zilong-dai/gnark/backend/groth16"
 	"github.com/zilong-dai/gnark/frontend"
 )
+
+const MAX_RETRY = 5
 
 func (w *G16Worker) Initialize(keystore_path string) {
 	fmt.Println("Initializing...", time.Now().Format(time.RFC3339))
@@ -40,6 +43,19 @@ func (w *G16Worker) Initialize(keystore_path string) {
 }
 
 func (w *G16Worker) SetUp(plonky2_file_path string) error {
+	if serialize.CheckKeyFilesIsExist(KEY_STORE_PATH) {
+		fmt.Println("Setup already done, skipping")
+		return nil
+	}
+
+	_, err := os.Stat(KEY_STORE_PATH)
+	if os.IsNotExist(err) {
+		err = os.Mkdir(KEY_STORE_PATH, os.ModePerm)
+		if err != nil {
+			return fmt.Errorf("failed to create keystore path: %w", err)
+		}
+	}
+
 	fmt.Println("Setup...", time.Now().Format(time.RFC3339))
 
 	plonky2Strings, err := serialize.ReadPlonky2Data(plonky2_file_path)
@@ -104,23 +120,32 @@ func (w *G16Worker) GenerateProof(common_circuit_data string, proof_with_public_
 		return fmt.Errorf("failed to create witness: %w", err)
 	}
 
-	proof, err := groth16.Prove(w.CCS, w.PK, witness)
-	if err != nil {
-		return fmt.Errorf("failed to create proof: %w", err)
-	}
-	w.Proof = proof
+	var retries = 0
+	for {
+		proof, err := groth16.Prove(w.CCS, w.PK, witness)
+		if err != nil {
+			return fmt.Errorf("failed to create proof: %w", err)
+		}
+		w.Proof = proof
 
-	publicWitness, err := witness.Public()
-	if err != nil {
-		return fmt.Errorf("failed to get public witness: %w", err)
-	}
-	w.PublicInputs = publicWitness
+		publicWitness, err := witness.Public()
+		if err != nil {
+			return fmt.Errorf("failed to get public witness: %w", err)
+		}
+		w.PublicInputs = publicWitness
 
-	err = groth16.Verify(proof, w.VK, publicWitness)
-	if err != nil {
-		return fmt.Errorf("failed to verify proof: %w", err)
+		err = groth16.Verify(proof, w.VK, publicWitness)
+		if err != nil {
+			// return fmt.Errorf("failed to verify proof: %w", err)
+			fmt.Println("generated bad proof, retrying...")
+		} else {
+			break
+		}
+		if retries > MAX_RETRY {
+			return fmt.Errorf("failed to generate proof, retry exceeded")
+		}
+		retries += 1
 	}
-
 	return nil
 }
 

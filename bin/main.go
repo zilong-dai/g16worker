@@ -16,9 +16,9 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	// if err := g16Worker.SetUp(path); err!= nil {
-	// 	panic(err)
-	// }
+	if err := g16Worker.SetUp(path); err != nil {
+		panic(err)
+	}
 	g16Worker.Initialize(worker.KEY_STORE_PATH)
 	if err := g16Worker.GenerateProof(plonky2Strings[0], plonky2Strings[1], plonky2Strings[2]); err != nil {
 		panic(err)
