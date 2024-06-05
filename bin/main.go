@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/zilong-dai/g16worker/serialize"
 	"github.com/zilong-dai/g16worker/worker"
@@ -22,6 +23,8 @@ func main() {
 	g16Worker.Initialize(worker.KEY_STORE_PATH)
 	if err := g16Worker.GenerateProof(plonky2Strings[0], plonky2Strings[1], plonky2Strings[2]); err != nil {
 		panic(err)
+	}else {
+		fmt.Println("Generate proof success")
 	}
 
 	p := worker.G16ProofWithPublicInputs{
@@ -34,5 +37,7 @@ func main() {
 	}
 	if err := g16Worker.VerifyProof(string(proofBytes), serialize.GNARK); err != nil {
 		panic(err)
+	}else {
+		fmt.Println("Verify success")
 	}
 }

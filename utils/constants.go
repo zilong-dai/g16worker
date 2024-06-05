@@ -3,7 +3,7 @@ package utils
 import "github.com/consensys/gnark-crypto/ecc"
 
 const CURVE_ID = ecc.BLS12_381
-const KEY_STORE_PATH = "/tmp/groth16-keystore/"
+const KEY_STORE_PATH = "./keystore"
 
 const CIRCUIT_PATH = "circuit_groth16.bin"
 const VK_PATH = "vk_groth16.bin"

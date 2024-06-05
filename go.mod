@@ -4,8 +4,8 @@ go 1.22.3
 
 require (
 	github.com/consensys/gnark-crypto v0.12.2-0.20240504013751-564b6f724c3b
-	github.com/zilong-dai/gnark v0.0.0-20240517091131-0ad4d7b387da
-	github.com/zilong-dai/gnark-plonky2-verifier v0.0.0-20240517095851-2dfefaf37745
+	github.com/zilong-dai/gnark v0.0.0-20240605084214-9bce0bf1f4bd
+	github.com/zilong-dai/gnark-plonky2-verifier v0.0.0-20240605084714-9456e33f9b65
 
 )
 
