@@ -1,0 +1,8 @@
+[package]
+name = "g16worker"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+g16worker-sys = { path = "./g16worker-sys" }
+anyhow = { version = "1.0.40", default-features = false }

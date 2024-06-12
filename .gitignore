@@ -1,3 +1,9 @@
-/target
 /keystore/*.bin
 /keystore/*.key
+
+# cargo
+**/target
+**/Cargo.lock
+
+# g16worker-sys
+**/libg16worker*

@@ -1,0 +1,12 @@
+[package]
+name = "g16worker-sys"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+libc = "*"
+
+[build-dependencies]
+gobuild = "0.1.0-alpha.1"
+bindgen = "0.69.4"
+anyhow = "*"
